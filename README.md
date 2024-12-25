@@ -1,8 +1,6 @@
 # Dusty 🗑️
 ## A simple yet powerful bot for purging messages 🪬.
 
----
-
 ### Available Settings ⚙️:
 - **Amount** 🔢: Specify the number of messages to delete.  
 - **Member's Messages** 🦵: Delete messages from a specific user.  
