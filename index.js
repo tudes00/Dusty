@@ -1,15 +1,12 @@
-const { Client, GatewayIntentBits, SlashCommandBuilder, ChannelType } = require('discord.js');
+const { Client, GatewayIntentBits, SlashCommandBuilder, ChannelType, ActivityType } = require('discord.js');
 require('dotenv').config();
-
-module.exports = {
-  token: process.env.TOKEN
-};
 
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.once('ready', async () => {
     console.log(`Logged in as ${client.user.tag}!`);
+    updateBotActivity()
     
     try {
         const command = new SlashCommandBuilder()
@@ -112,4 +109,25 @@ client.on('interactionCreate', interaction => {
     }
 });
 
-client.login(token);
+function updateBotActivity() {
+    const activities = [
+        {
+            name: `game with ${client.users.cache.size} users 🚀`,
+            type: ActivityType.Playing,
+        },
+        {
+            name: `game in ${client.guilds.cache.size} servers 🗑️`,
+            type: ActivityType.Playing,
+        },
+        {
+            name: `game with you, made by tudes_ 👨‍💻`,
+            type: ActivityType.Playing,
+        }];
+        
+         setInterval(() => {
+            const random = Math.floor(Math.random()*activities.length);
+            client.user.setActivity({name: activities[random].name, type: ActivityType.Playing});
+         }, 10000)
+}
+
+client.login(process.env.TOKEN);
