@@ -112,21 +112,21 @@ client.on('interactionCreate', interaction => {
 function updateBotActivity() {
     const activities = [
         {
-            name: `game with ${client.users.cache.size} users 🚀`,
+            name: `with ${client.users.cache.size} users 🚀`,
             type: ActivityType.Playing,
         },
         {
-            name: `game in ${client.guilds.cache.size} servers 🗑️`,
-            type: ActivityType.Playing,
+            name: `${client.guilds.cache.size} servers 🗑️`,
+            type: ActivityType.Listening,
         },
         {
-            name: `game with you, made by tudes_ 👨‍💻`,
+            name: `with you, made by tudes_ 👨‍💻`,
             type: ActivityType.Playing,
         }];
         
          setInterval(() => {
             const random = Math.floor(Math.random()*activities.length);
-            client.user.setActivity({name: activities[random].name, type: ActivityType.Playing});
+            client.user.setActivity({name: activities[random].name, type: activities[random].type});
          }, 10000)
 }
 
