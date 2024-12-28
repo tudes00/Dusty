@@ -11,32 +11,41 @@ client.once('ready', async () => {
     try {
         const command = new SlashCommandBuilder()
             .setName('purge')
-            .setDescription('Purge messages from a specific channel, user and more')
+            .setDescription('Purge messages from a specific channel, user and more(Max 2 weeks ago)')
             .addIntegerOption(option => option
                 .setName('amount')
-                .setDescription('number of messages to purge')
+                .setDescription('🗑️ number of messages to purge')
                 .setRequired(true)
             )
             .addChannelOption(option => option
                     .setName('channel')
-                    .setDescription('The channel to purge messages from')
+                    .setDescription('💬 The channel to purge messages from')
                     .setRequired(false)
                     .addChannelTypes(ChannelType.GuildText)
                 )
             .addUserOption(option => option
                 .setName('user')
-                .setDescription("Purge messages from a user")
+                .setDescription("🦵 Purge messages from a user")
                 .setRequired(false)
             )
             .addRoleOption(option => option
                 .setName('role')
-                .setDescription("Purge messages from a role")
+                .setDescription("📇 Purge messages from a role")
                 .setRequired(false)
             )
             .addStringOption(option =>
                 option.setName('filter')
-                    .setDescription('Filter for specific messages to purge (e.g., contains a word)')
+                    .setDescription('🔍 Filter for specific messages to purge (e.g., contains a word)')
                     .setRequired(false))
+            .addStringOption(option =>
+                option.setName('until_id')
+                    .setDescription('🆔 Specify a message ID to delete messages sent before this ID')
+                    .setRequired(false))
+            .addStringOption(option =>
+                option.setName('until_date')
+                    .setDescription('📅 Specify a date (YYYY-MM-DD HH:mm) to delete messages sent before this date(Max 2 weeks ago)')
+                    .setRequired(false)
+                    .setMaxLength(16))
             .toJSON();
 
         await client.application.commands.create(command);
@@ -54,6 +63,8 @@ client.on('interactionCreate', interaction => {
         const user = interaction.options.getUser('user');
         const filter = interaction.options.getString('filter');
         const role = interaction.options.getRole('role');
+        const untilId = interaction.options.getString('until_id');
+        const untilDate = interaction.options.getString('until_date');
         
         if (!channel.permissionsFor(interaction.user).has('ManageMessages')) {
             return interaction.reply({ content: 'You don’t have permission to manage messages in this channel.', ephemeral: true });
@@ -66,6 +77,7 @@ client.on('interactionCreate', interaction => {
             }
             let filteredMessages = messages;
             let errorMessage = '';
+            let success = true;
 
             if (user) {
                 filteredMessages = filteredMessages.filter(message => message.author.id === user.id);
@@ -78,6 +90,35 @@ client.on('interactionCreate', interaction => {
             if (role) {
                 filteredMessages = filteredMessages.filter(message => message.member.roles.cache.has(role.id));
             }
+            
+            if (untilId) {
+                let index = 0;
+                for (const message of filteredMessages.values()) {
+                    index ++;
+                    if (message.id === untilId) {
+                        filteredMessages = Array.from(filteredMessages.values()).slice(0, index-1);
+                        break;
+                    }
+                };
+            }
+
+            if (untilDate) {
+                let timestamp;
+                const regex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
+                if (!regex.test(untilDate)) {success = false} else {
+                    const [datePart, timePart] = untilDate.split(" ");
+                    const [year, month, day] = datePart.split("-").map(Number);
+                    const [hour, minute] = timePart.split(":").map(Number);
+                
+                    timestamp = new Date(year, month - 1, day, hour, minute).getTime();
+                    if (isNaN(timestamp)) {success = false};
+                };
+                if (!success) {
+                    errorMessage = "Invalid date format. Please use YYYY-MM-DD HH:mm.";
+                } else {
+                filteredMessages = filteredMessages.filter(msg => msg.createdTimestamp > timestamp);
+                }
+            };
 
             filteredMessages = Array.from(filteredMessages.values()).slice(0, amount);
 
@@ -85,13 +126,13 @@ client.on('interactionCreate', interaction => {
             const filteredMessagesBefore = filteredMessages
             filteredMessages = filteredMessages.filter(msg => msg.createdTimestamp > twoWeeksAgo);
             if(filteredMessages.length !== filteredMessagesBefore.length) {
-                errorMessage = `However, ${filteredMessagesBefore.length - filteredMessages.length} messages couldn't be deleted because they are older than 14 days.`;
+                errorMessage = `${filteredMessagesBefore.length - filteredMessages.length} messages cannot be deleted because they are older than 14 days.`;
             }
             
             if (filteredMessages.length === 0) {
                 return interaction.reply({ content: `No matching messages found. ${errorMessage}`, ephemeral: true });
             }
-
+            if (success) {
             channel.bulkDelete(filteredMessages, true)
                 .then(deleted => interaction.reply({ 
                     content: `Successfully deleted ${deleted.size} messages. ${errorMessage}`, 
@@ -101,6 +142,9 @@ client.on('interactionCreate', interaction => {
                     console.error(err);
                     interaction.reply({ content: 'Failed to delete messages.', ephemeral: true });
                 });
+            } else {
+                interaction.reply({ content: `No matching messages found. ${errorMessage}`, ephemeral: true });
+            }
         })
         .catch(error => {
             console.error('Error fetching messages:', error);
@@ -122,6 +166,10 @@ function updateBotActivity() {
         {
             name: `with you, made by tudes_ 👨‍💻`,
             type: ActivityType.Playing,
+        },
+        {
+            name: `source code on github.com/tudes00/Dusty ⛓️🔗`,
+            type: ActivityType.Watching,
         }];
         
          setInterval(() => {
@@ -131,3 +179,4 @@ function updateBotActivity() {
 }
 
 client.login(process.env.TOKEN);
+  
