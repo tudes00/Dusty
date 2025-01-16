@@ -11,3 +11,6 @@
 - **Until Date** 📅: Delete messages sent before a specified date(max 2 weeks ago).
 
 Dusty makes server cleanup quick, easy, and customizable! 🚀
+
+
+**Link** 🔗: https://slug.vercel.app/Dusty
