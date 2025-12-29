@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
 
     environment:
-      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      TOKEN: ${TOKEN}
       NODE_ENV: production
 
     volumes:

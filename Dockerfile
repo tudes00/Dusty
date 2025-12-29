@@ -6,6 +6,6 @@ COPY package*.json ./
 
 RUN npm install --omit=dev --no-audit --no-fund
 
-COPY . .
+COPY index.js .
 
 CMD ["node", "index.js"]

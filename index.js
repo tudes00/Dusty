@@ -1,6 +1,4 @@
 const { Client, GatewayIntentBits, SlashCommandBuilder, ChannelType, ActivityType } = require('discord.js');
-require('dotenv').config();
-
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
